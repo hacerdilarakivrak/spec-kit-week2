@@ -1,56 +1,62 @@
 # Phase 1: Data Model & State Specifications
 
 **Feature**: Quote of the Day Page (`specs/001-quote-of-the-day`)  
-**Date**: 2026-10-06  
+**Date**: 2026-10-07  
 **Status**: Completed  
-**Directives**: Plain HTML/CSS/JavaScript, no backend, localStorage persistence.
+**Assignment Constraint**: Plain HTML/CSS/JavaScript, no TypeScript, no Vite, no framework, no backend.
 
 ---
 
-## 1. Entities
+## 1. Entities (Plain JavaScript)
 
 ### `Quote`
 Represents an individual quote item in the built-in collection.
 
 | Field | Type | Required | Description | Constraints |
 |:---|:---|:---:|:---|:---|
-| `id` | `string` | Yes | Unique identifier for the quote | Non-empty, unique across collection (e.g., `"q-01"`) |
-| `text` | `string` | Yes | The text content of the quote | Non-empty string, length $\ge 3$ characters |
-| `author` | `string` | Yes | The person or entity credited with the quote | Non-empty string, length $\ge 1$ character |
+| `id` | `string` | Yes | Unique identifier for the quote | Non-empty string (e.g., `"q-01"`) |
+| `text` | `string` | Yes | Verbatim quote content | Non-empty string, length $\ge 3$ characters |
+| `author` | `string` | Yes | Person or source credited | Non-empty string, length $\ge 1$ character |
 
-#### Plain JavaScript Structure:
+#### Plain JavaScript Object Structure:
 ```javascript
-{
+/**
+ * @typedef {Object} Quote
+ * @property {string} id - Unique identifier (e.g., "q-01")
+ * @property {string} text - Quote text content
+ * @property {string} author - Author or speaker name
+ */
+const sampleQuote = {
   id: "q-01",
   text: "The only way to do great work is to love what you do.",
   author: "Steve Jobs"
-}
+};
 ```
 
 ---
 
-### `FavoriteState` & Persistence
-Represents client-side user favorites stored in browser `localStorage`.
+### `FavoriteState` (localStorage Persistence)
+Represents the set of user-favorited quote identifiers persisted in browser storage.
 
-| Field | Type | Storage Format | Description |
+| Field | In-Memory Representation | localStorage Storage Format | Storage Key |
 |:---|:---|:---|:---|
-| `favoritedQuoteIds` | `Set<string>` (in-memory) | JSON array of strings in `localStorage` | Unique quote IDs favorited by the user |
+| `favoritedQuoteIds` | `Set<string>` | JSON array of strings | `"quote_of_the_day_favorites"` |
 
-- **Storage Key**: `"quote_of_the_day_favorites"`
-- **Storage Value Example**: `["q-01", "q-05", "q-10"]`
+- **Serialized Example**: `["q-01", "q-05", "q-10"]`
+- **Fallback**: Initialized to empty `Set` if `localStorage` is empty, inaccessible, or corrupted.
 
 ---
 
-### `StarControlState`
-Represents the presentation and accessibility state for the active quote's favorite toggle control.
+### `StarControlState` (UI Presentation & Accessibility)
+Represents the presentation and accessibility attributes for the active quote's favorite star button.
 
-| State Property | Inactive (Unfavorited) | Active (Favorited) |
+| Attribute / Property | Inactive (Unfavorited) | Active (Favorited) |
 |:---|:---|:---|
-| `isFavorited` | `false` | `true` |
 | `aria-pressed` | `"false"` | `"true"` |
 | `aria-label` | `"Add quote to favorites"` | `"Remove quote from favorites"` |
-| `visibleText` | `"Favorite"` | `"Favorited"` |
-| `starVisualClass` | *default button styling* | `.is-favorited` (gold highlight, filled star) |
+| `.favorite-text` | `"Favorite"` | `"Favorited"` |
+| Button CSS Classes | `btn btn-favorite` | `btn btn-favorite is-favorited` |
+| Star Icon Visual | Outline, muted color (`#94a3b8`) | Gold highlight (`#f59e0b`), scaled transform |
 
 ---
 
@@ -58,21 +64,19 @@ Represents the presentation and accessibility state for the active quote's favor
 
 ```mermaid
 stateDiagram-v2
-    [*] --> DisplayQuote: Quote Presented
-    DisplayQuote --> CheckFavorites: Query localStorage
-    CheckFavorites --> InactiveStar: ID not in favorites
-    CheckFavorites --> ActiveStar: ID exists in favorites
-    InactiveStar --> ActiveStar: Click Star [Add to Set -> Save localStorage]
-    ActiveStar --> InactiveStar: Click Star [Remove from Set -> Save localStorage]
+    [*] --> DisplayQuote: Render Quote
+    DisplayQuote --> QueryStorage: Check localStorage for quote.id
+    QueryStorage --> Unfavorited: Not in Set / localStorage
+    QueryStorage --> Favorited: Exists in Set / localStorage
+    Unfavorited --> Favorited: User clicks Star [Add ID -> Save localStorage]
+    Favorited --> Unfavorited: User clicks Star [Remove ID -> Save localStorage]
 ```
 
-1. **Storage Read**:
-   - On load, parse `localStorage.getItem("quote_of_the_day_favorites")`.
-   - If missing, invalid, or corrupted, initialize with an empty `Set`.
-2. **Toggle Operation**:
-   - `toggleFavorite(quoteId)`:
-     - If `quoteId` in `Set`: delete `quoteId`, persist array to `localStorage`, return `false`.
-     - If `quoteId` not in `Set`: add `quoteId`, persist array to `localStorage`, return `true`.
-3. **Storage Write**:
-   - Serialize `Array.from(favoriteIds)` to JSON and store in `localStorage`.
-   - Wrapped in `try...catch` to fall back to in-memory set if storage is unavailable or quota is exceeded.
+1. **Read on Quote Render**:
+   - Check if `currentQuote.id` is in the active favorites set.
+   - Set star button attributes: `aria-pressed`, `aria-label`, visible text, and `.is-favorited` class accordingly.
+2. **Toggle on Click**:
+   - If favorited: remove ID from set, serialize to JSON, save to `localStorage`, update UI to unfavorited.
+   - If unfavorited: add ID to set, serialize to JSON, save to `localStorage`, update UI to favorited.
+3. **Storage Resilience**:
+   - Wrap all `localStorage` access in `try...catch`. If `localStorage` throws or is unavailable, maintain state in-memory so user interactions continue smoothly without errors.

@@ -1,26 +1,19 @@
-import { Quote } from "../models/quote.js";
-
-export interface IQuoteService {
-  getAllQuotes(): ReadonlyArray<Quote>;
-  getRandomQuote(excludeId?: string): Quote;
-  getQuoteById(id: string): Quote | undefined;
-}
-
-export class QuoteService implements IQuoteService {
-  private readonly quotes: ReadonlyArray<Quote>;
-
-  constructor(quotes: ReadonlyArray<Quote>) {
+/**
+ * QuoteService implementation in plain JavaScript.
+ */
+export class QuoteService {
+  constructor(quotes) {
     if (!quotes || quotes.length === 0) {
       throw new Error("QuoteService requires at least one quote");
     }
     this.quotes = quotes;
   }
 
-  getAllQuotes(): ReadonlyArray<Quote> {
+  getAllQuotes() {
     return this.quotes;
   }
 
-  getRandomQuote(excludeId?: string): Quote {
+  getRandomQuote(excludeId) {
     if (this.quotes.length === 1) {
       return this.quotes[0];
     }
@@ -34,7 +27,7 @@ export class QuoteService implements IQuoteService {
     return pool[randomIndex];
   }
 
-  getQuoteById(id: string): Quote | undefined {
+  getQuoteById(id) {
     return this.quotes.find((q) => q.id === id);
   }
 }

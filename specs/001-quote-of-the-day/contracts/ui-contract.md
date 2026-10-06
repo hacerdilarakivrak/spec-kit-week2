@@ -1,9 +1,9 @@
 # UI Interface Contract
 
 **Feature**: Quote of the Day Page (`specs/001-quote-of-the-day`)  
-**Date**: 2026-10-06  
+**Date**: 2026-10-07  
 **Status**: Completed  
-**Directives**: Plain HTML/CSS/JavaScript, no backend; localStorage persistence.
+**Assignment Constraint**: Plain HTML/CSS/JavaScript, no TypeScript, no Vite, no framework, no backend.
 
 ---
 
@@ -11,7 +11,7 @@
 
 | Element / Role | Selector / `data-testid` | Attributes & Accessibility | Purpose |
 |:---|:---|:---|:---|
-| **Quote Card Container** | `[data-testid="quote-card"]` | `role="region"`, `aria-label="Quote of the Day"` | Primary presentation card |
+| **Quote Card Container** | `[data-testid="quote-card"]` | `role="region"`, `aria-label="Quote of the Day"` | Primary presentation card container |
 | **Quote Text** | `[data-testid="quote-text"]` | `<blockquote data-testid="quote-text">` | Displays the quote text |
 | **Quote Author** | `[data-testid="quote-author"]` | `<cite data-testid="quote-author">` | Displays author attribution |
 | **"New quote" Button** | `[data-testid="new-quote-btn"]` | `<button type="button" aria-label="Load a new quote">` | Trigger to select next random quote |
@@ -21,9 +21,9 @@
 
 ---
 
-## 2. Star Control States & Transitions
+## 2. Star Control Markup & Visual States
 
-### Inactive State (Quote Not Favorited):
+### Inactive State (Unfavorited):
 ```html
 <button
   type="button"
@@ -37,7 +37,7 @@
 </button>
 ```
 
-### Active State (Quote Favorited):
+### Active State (Favorited):
 ```html
 <button
   type="button"
@@ -55,7 +55,10 @@
 
 ## 3. Storage Interaction Contract
 
-- On quote render: Query `localStorage` for active quote ID.
-- If favorited: apply active attributes (`aria-pressed="true"`, `aria-label="Remove quote from favorites"`, class `is-favorited`).
-- If unfavorited: apply inactive attributes (`aria-pressed="false"`, `aria-label="Add quote to favorites"`, remove class `is-favorited`).
-- On click: toggle state, update `localStorage`, update attributes and classes immediately.
+- **On initial load / quote change**:
+  - Check `localStorage` for current quote ID.
+  - If favorited: apply `aria-pressed="true"`, `aria-label="Remove quote from favorites"`, `.is-favorited` class, and text "Favorited".
+  - If unfavorited: apply `aria-pressed="false"`, `aria-label="Add quote to favorites"`, remove `.is-favorited` class, and text "Favorite".
+- **On button click**:
+  - Toggle state in memory and update `localStorage` under `"quote_of_the_day_favorites"`.
+  - Update DOM attributes and announce change via `#status-announcer`.

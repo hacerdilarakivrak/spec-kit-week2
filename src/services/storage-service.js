@@ -1,14 +1,12 @@
-import { IStorageService } from "../models/favorite-state.js";
-
 /**
- * Resilient implementation of IStorageService with automatic in-memory fallback.
- * Guarantees zero crashes if browser storage is blocked, unavailable, or throws.
+ * Resilient implementation of StorageService with automatic in-memory fallback.
+ * Guarantees zero crashes if browser localStorage is blocked, unavailable, or throws.
  */
-export class StorageService implements IStorageService {
-  private inMemoryFallback: Map<string, string> = new Map();
-  private storage: Storage | null = null;
+export class StorageService {
+  constructor(customStorage) {
+    /** @type {Map<string, string>} */
+    this.inMemoryFallback = new Map();
 
-  constructor(customStorage?: Storage) {
     if (customStorage !== undefined) {
       this.storage = customStorage;
     } else {
@@ -20,7 +18,7 @@ export class StorageService implements IStorageService {
     }
   }
 
-  getItem<T>(key: string, fallback: T): T {
+  getItem(key, fallback) {
     try {
       if (!this.storage) {
         return this.getFromMemory(key, fallback);
@@ -29,13 +27,13 @@ export class StorageService implements IStorageService {
       if (item === null) {
         return this.getFromMemory(key, fallback);
       }
-      return JSON.parse(item) as T;
+      return JSON.parse(item);
     } catch {
       return this.getFromMemory(key, fallback);
     }
   }
 
-  setItem<T>(key: string, value: T): boolean {
+  setItem(key, value) {
     const serialized = JSON.stringify(value);
     try {
       if (!this.storage) {
@@ -46,27 +44,26 @@ export class StorageService implements IStorageService {
       this.inMemoryFallback.set(key, serialized);
       return true;
     } catch {
-      // Gracefully persist to in-memory store
       this.inMemoryFallback.set(key, serialized);
       return false;
     }
   }
 
-  removeItem(key: string): void {
+  removeItem(key) {
     try {
       if (this.storage) {
         this.storage.removeItem(key);
       }
     } catch {
-      // Ignore storage errors on remove
+      // Ignore errors on remove
     }
     this.inMemoryFallback.delete(key);
   }
 
-  private getFromMemory<T>(key: string, fallback: T): T {
+  getFromMemory(key, fallback) {
     if (this.inMemoryFallback.has(key)) {
       try {
-        return JSON.parse(this.inMemoryFallback.get(key)!) as T;
+        return JSON.parse(this.inMemoryFallback.get(key));
       } catch {
         return fallback;
       }

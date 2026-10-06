@@ -1,6 +1,6 @@
-import { Quote, validateQuote } from "../models/quote.js";
+import { validateQuote } from "../models/quote.js";
 
-const rawQuotes: ReadonlyArray<Quote> = [
+const rawQuotes = [
   {
     id: "q-01",
     text: "The only way to do great work is to love what you do.",
@@ -64,6 +64,4 @@ const rawQuotes: ReadonlyArray<Quote> = [
 ];
 
 // Validate all quotes at load time to ensure dataset integrity
-export const BUILT_IN_QUOTES: ReadonlyArray<Quote> = Object.freeze(
-  rawQuotes.map(validateQuote)
-);
+export const BUILT_IN_QUOTES = Object.freeze(rawQuotes.map(validateQuote));

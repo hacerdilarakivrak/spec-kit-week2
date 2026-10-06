@@ -1,26 +1,21 @@
-import { Quote } from "../models/quote.js";
-
+/**
+ * QuoteView manages DOM rendering, button interactions, accessibility labels, and live announcements.
+ */
 export class QuoteView {
-  private quoteTextEl: HTMLElement | null;
-  private quoteAuthorEl: HTMLElement | null;
-  private favoriteBtnEl: HTMLButtonElement | null;
-  private newQuoteBtnEl: HTMLButtonElement | null;
-  private statusAnnouncerEl: HTMLElement | null;
-
-  private onNewQuoteCallback: (() => void) | null = null;
-  private onToggleFavoriteCallback: (() => void) | null = null;
-
-  constructor(root: Document | HTMLElement = document) {
+  constructor(root = document) {
     this.quoteTextEl = root.querySelector('[data-testid="quote-text"]');
     this.quoteAuthorEl = root.querySelector('[data-testid="quote-author"]');
     this.favoriteBtnEl = root.querySelector('[data-testid="favorite-btn"]');
     this.newQuoteBtnEl = root.querySelector('[data-testid="new-quote-btn"]');
     this.statusAnnouncerEl = root.querySelector("#status-announcer");
 
+    this.onNewQuoteCallback = null;
+    this.onToggleFavoriteCallback = null;
+
     this.attachEventListeners();
   }
 
-  private attachEventListeners(): void {
+  attachEventListeners() {
     if (this.newQuoteBtnEl) {
       this.newQuoteBtnEl.addEventListener("click", () => {
         if (this.onNewQuoteCallback) {
@@ -38,15 +33,15 @@ export class QuoteView {
     }
   }
 
-  bindNewQuote(callback: () => void): void {
+  bindNewQuote(callback) {
     this.onNewQuoteCallback = callback;
   }
 
-  bindToggleFavorite(callback: () => void): void {
+  bindToggleFavorite(callback) {
     this.onToggleFavoriteCallback = callback;
   }
 
-  renderQuote(quote: Quote, isFavorite: boolean): void {
+  renderQuote(quote, isFavorite) {
     if (this.quoteTextEl) {
       this.quoteTextEl.textContent = quote.text;
     }
@@ -56,7 +51,7 @@ export class QuoteView {
     this.updateFavoriteState(isFavorite);
   }
 
-  updateFavoriteState(isFavorite: boolean): void {
+  updateFavoriteState(isFavorite) {
     if (!this.favoriteBtnEl) return;
 
     this.favoriteBtnEl.setAttribute("aria-pressed", isFavorite ? "true" : "false");
@@ -64,6 +59,7 @@ export class QuoteView {
       "aria-label",
       isFavorite ? "Remove quote from favorites" : "Add quote to favorites"
     );
+
     const favoriteTextSpan = this.favoriteBtnEl.querySelector(".favorite-text");
 
     if (isFavorite) {
@@ -79,7 +75,7 @@ export class QuoteView {
     }
   }
 
-  announceStatus(message: string): void {
+  announceStatus(message) {
     if (this.statusAnnouncerEl) {
       this.statusAnnouncerEl.textContent = message;
     }

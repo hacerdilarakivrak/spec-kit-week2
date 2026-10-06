@@ -1,12 +1,11 @@
 /**
- * Quote model definition and validation.
+ * Quote model definition and validation (Plain JavaScript).
+ *
+ * @typedef {Object} Quote
+ * @property {string} id - Unique identifier (non-empty string)
+ * @property {string} text - Quote text content (length >= 3)
+ * @property {string} author - Author name (non-empty string)
  */
-
-export interface Quote {
-  readonly id: string;
-  readonly text: string;
-  readonly author: string;
-}
 
 /**
  * Validates a Quote object according to specification constraints:
@@ -14,14 +13,16 @@ export interface Quote {
  * - 'text': string with length >= 3
  * - 'author': non-empty string (trimmed)
  *
- * @throws Error if any validation rule is violated
+ * @param {unknown} candidate
+ * @returns {Quote}
+ * @throws {Error} if any validation rule is violated
  */
-export function validateQuote(candidate: unknown): Quote {
+export function validateQuote(candidate) {
   if (!candidate || typeof candidate !== "object") {
     throw new Error("Quote must be a non-null object");
   }
 
-  const { id, text, author } = candidate as Partial<Quote>;
+  const { id, text, author } = candidate;
 
   if (typeof id !== "string" || id.trim().length === 0) {
     throw new Error("Quote 'id' must be a non-empty string");
